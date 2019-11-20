@@ -70,7 +70,7 @@ MotorGroup intake({MOTOR_INTAKE_RIGHT,-MOTOR_INTAKE_LEFT});
 
 MotorGroup lift({-MOTOR_LIFT});
 
-MotorGroup angler({-MOTOR_ANGLER});
+Motor angler(-MOTOR_ANGLER);
 
 //------------------------------------------------------------------------------
 
@@ -96,7 +96,10 @@ char s[30];
  ControllerButton LiftDownButton(ControllerDigital::L2);
 //------------------------------------------------------------------------------
 intake.setBrakeMode(AbstractMotor::brakeMode::brake);
-
+angler.setBrakeMode(AbstractMotor::brakeMode::brake);
+lift.setBrakeMode(AbstractMotor::brakeMode::brake);
+angler.tarePosition();
+//------------------------------------------------------------------------------
 	while (true) {
 		drive.tank(masterController.getAnalog(ControllerAnalog::leftY),
 						masterController.getAnalog(ControllerAnalog::rightY));
@@ -122,26 +125,23 @@ intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 //------------------------------------------------------------------------------
  if(AnglerUpButton.isPressed())
 	 {
-
-		//___int_least16_t_defined sprintf(s,"%f",angler.getPosition());
-  	//masterController.setText(0, 0, s);
-    //Display position of (MotorGroup)
-
-		 if (angler.getPosition()<=200) {
+	   sprintf(s,"%f",angler.getPosition());
+  	 masterController.setText(0, 0, s);
+     //Display position of (MotorGroup) on controller
+		 if (abs(angler.getPosition())<=1000) {
 			  angler.moveVoltage(12000);
-		 }
-		 else if (angler.getPosition()>200 && angler.getPosition() <500) {
- 		 	angler.moveVoltage(2000);
-		 }
-		  else  {
-    	angler.moveVoltage(5000);
-		 }
-		 angler.moveVoltage(12000);
-	 }
-	 else if(AnglerDownButton.isPressed()){
+
+		 } else if (abs(angler.getPosition())>1000 && abs(angler.getPosition())<1400) {
+ 		 	angler.moveVoltage(6000);
+
+		} else if(abs(angler.getPosition())>1400) {
+			angler.moveVoltage(3000);
+		}
+
+	 } else if(AnglerDownButton.isPressed()){
 		  angler.moveVoltage(-12000);
-	 }
-	 else{
+
+	 } else{
 		 angler.moveVoltage(0);
 	 }
 //------------------------------------------------------------------------------
