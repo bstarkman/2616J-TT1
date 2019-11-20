@@ -72,14 +72,17 @@ MotorGroup lift({-MOTOR_LIFT});
 
 MotorGroup angler({-MOTOR_ANGLER});
 
+//------------------------------------------------------------------------------
 
 auto drive = ChassisControllerFactory::create(
 	leftmg, rightmg,
   AbstractMotor::gearset::green,
   {4_in, 9.0_in}
+//distance between the center of the front drive wheels
 );
 void opcontrol() {
 
+//------------------------------------------------------------------------------
 char s[30];
 	okapi::Controller masterController;
 
@@ -91,24 +94,23 @@ char s[30];
 
  ControllerButton LiftUpButton(ControllerDigital::L1);
  ControllerButton LiftDownButton(ControllerDigital::L2);
-
+//------------------------------------------------------------------------------
 intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 
 	while (true) {
 		drive.tank(masterController.getAnalog(ControllerAnalog::leftY),
 						masterController.getAnalog(ControllerAnalog::rightY));
-
-
+//------------------------------------------------------------------------------
    if(IntakeInButton.isPressed())
 	 {
 		 intake.moveVoltage(12000);
-		 lift.moveVoltage(100);
+		 lift.moveVoltage(-1000);
 	 } else if(IntakeOutButton.isPressed()){
 		  intake.moveVoltage(-12000);
 	 }else{
 		 intake.moveVoltage(0);
 	 }
-
+//------------------------------------------------------------------------------
   if(LiftUpButton.isPressed()){
       lift.moveVoltage(12000);
 			//cout  << "button;"
@@ -117,13 +119,13 @@ intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 	}else{
 		lift.moveVoltage(-800);
 	}
-
+//------------------------------------------------------------------------------
  if(AnglerUpButton.isPressed())
 	 {
 
-		 sprintf(s,"%f",angler.getPosition());
-		 masterController.setText(0, 0, s);
-
+		//___int_least16_t_defined sprintf(s,"%f",angler.getPosition());
+  	//masterController.setText(0, 0, s);
+    //Display position of (MotorGroup)
 
 		 if (angler.getPosition()<=200) {
 			  angler.moveVoltage(12000);
@@ -133,16 +135,30 @@ intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 		 }
 		  else  {
     	angler.moveVoltage(5000);
-			//poopoo
 		 }
-
 		 angler.moveVoltage(12000);
-	 } else if(AnglerDownButton.isPressed()){
+	 }
+	 else if(AnglerDownButton.isPressed()){
 		  angler.moveVoltage(-12000);
-	 }else{
+	 }
+	 else{
 		 angler.moveVoltage(0);
 	 }
-
+//------------------------------------------------------------------------------
 	pros::delay(20);
  }
 }
+
+/**
+
+Broken Ports:
+
+TO DO LIST
+1. Tray control with angler movement
+2. IntakeOut Speed ajustments
+3. AnglerUp Speed ajustments
+
+cd C:\Users\bstar\git\2616J\2616J-TT1
+prosv5 make
+prosv5 upload --slot 2 --name TTNew
+*/
