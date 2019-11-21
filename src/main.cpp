@@ -69,24 +69,36 @@ void competition_initialize() {}
 void autonomous() {
 
 angler.moveVoltage(-1000);
-lift.moveVoltage(-12000);
+lift.moveVoltage(-1000);
 
-drive1.moveAbsolute(500, 12000);
-drive1.moveAbsolute(500, -12000);
+drive.setMaxVelocity(100);
+drive.moveDistance(100);
+
 pros::delay(100);
 
-intake.moveAbsolute(1000, -12000);
+drive.setMaxVelocity(100);
+drive.moveDistance(-100);
+
 pros::delay(100);
 
-intake.moveAbsolute(1000, 12000);
-drive1.moveAbsolute(10000, 12000);
+intake.moveVoltage(12000);
 pros::delay(100);
 
-turnLeft.moveAbsolute(1000, 12000);
+drive.setMaxVelocity(100);
+drive.moveDistance(1100);
+
 pros::delay(100);
 
-drive1.moveAbsolute(1000, 12000);
-pros::delay(100);
+drive.setMaxVelocity(100);
+drive.moveDistance(-375);
+
+
+drive.setMaxVelocity(75);
+drive.turnAngle(-370);
+
+drive.setMaxVelocity(100);
+drive.moveDistance(750);
+
 
 if (abs(angler.getPosition())<=1300) {
 	 angler.moveVoltage(12000);
@@ -99,11 +111,11 @@ if (abs(angler.getPosition())<=1300) {
 }
 pros::delay(200);
 
-drive1.moveAbsolute(1000, -2500);
+drive.moveDistance(-500);
 
 }
 
-/**
+/*
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the operatorS
