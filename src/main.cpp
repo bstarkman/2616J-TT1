@@ -43,7 +43,65 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+
+ MotorGroup leftmg({ MOTOR_DRIVE_FRONT_LEFT,MOTOR_DRIVE_BACK_LEFT});
+ MotorGroup rightmg( {-MOTOR_DRIVE_FRONT_RIGHT,-MOTOR_DRIVE_BACK_RIGHT});
+
+ MotorGroup drive1 ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
+ MotorGroup turnLeft ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, MOTOR_DRIVE_FRONT_RIGHT, MOTOR_DRIVE_BACK_RIGHT});
+ MotorGroup turnRight({MOTOR_DRIVE_FRONT_LEFT, MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
+
+ MotorGroup intake({MOTOR_INTAKE_RIGHT,-MOTOR_INTAKE_LEFT});
+
+ MotorGroup lift({-MOTOR_LIFT});
+
+ Motor angler(-MOTOR_ANGLER);
+
+ //------------------------------------------------------------------------------
+
+ auto drive = ChassisControllerFactory::create(
+ 	leftmg, rightmg,
+   AbstractMotor::gearset::green,
+   {4_in, 9.0_in}
+ //distance between the center of the front drive wheels
+ );
+
+void autonomous() {
+
+angler.moveVoltage(-1000);
+lift.moveVoltage(-12000);
+
+drive1.moveAbsolute(500, 12000);
+drive1.moveAbsolute(500, -12000);
+pros::delay(100);
+
+intake.moveAbsolute(1000, -12000);
+pros::delay(100);
+
+intake.moveAbsolute(1000, 12000);
+drive1.moveAbsolute(10000, 12000);
+pros::delay(100);
+
+turnLeft.moveAbsolute(1000, 12000);
+pros::delay(100);
+
+drive1.moveAbsolute(1000, 12000);
+pros::delay(100);
+
+if (abs(angler.getPosition())<=1300) {
+	 angler.moveVoltage(12000);
+
+} else if (abs(angler.getPosition())>1300 && abs(angler.getPosition())<=1500) {
+ angler.moveVoltage(6000);
+
+} else if(abs(angler.getPosition())>1500) {
+ angler.moveVoltage(3000);
+}
+pros::delay(200);
+
+drive1.moveAbsolute(1000, -2500);
+
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -61,25 +119,6 @@ void autonomous() {}
 
  // Chassis Control9ler - lets us drive the robot around with open- or closed-loop control
 
-
-
-MotorGroup leftmg({ MOTOR_DRIVE_FRONT_LEFT,MOTOR_DRIVE_BACK_LEFT});
-MotorGroup rightmg( {-MOTOR_DRIVE_FRONT_RIGHT,-MOTOR_DRIVE_BACK_RIGHT});
-
-MotorGroup intake({MOTOR_INTAKE_RIGHT,-MOTOR_INTAKE_LEFT});
-
-MotorGroup lift({-MOTOR_LIFT});
-
-Motor angler(-MOTOR_ANGLER);
-
-//------------------------------------------------------------------------------
-
-auto drive = ChassisControllerFactory::create(
-	leftmg, rightmg,
-  AbstractMotor::gearset::green,
-  {4_in, 9.0_in}
-//distance between the center of the front drive wheels
-);
 void opcontrol() {
 
 //------------------------------------------------------------------------------
@@ -99,6 +138,8 @@ intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 angler.setBrakeMode(AbstractMotor::brakeMode::brake);
 lift.setBrakeMode(AbstractMotor::brakeMode::brake);
 angler.tarePosition();
+int count =0;
+count++;
 //------------------------------------------------------------------------------
 	while (true) {
 		drive.tank(masterController.getAnalog(ControllerAnalog::leftY),
@@ -108,40 +149,58 @@ angler.tarePosition();
 	 {
 		 intake.moveVoltage(12000);
 		 lift.moveVoltage(-1000);
-	 } else if(IntakeOutButton.isPressed()){
-		  intake.moveVoltage(-12000);
+
+		 //resets counter to 0
+	 } else if(IntakeOutButton.isPressed() && count < 1){
+		  intake.moveVoltage(-6000);
+	 count =0;
+	 }else if(IntakeOutButton.isPressed() && count >= 1){
+		 intake.moveVoltage(-12000);
+
 	 }else{
 		 intake.moveVoltage(0);
+
 	 }
 //------------------------------------------------------------------------------
-  if(LiftUpButton.isPressed()){
-      lift.moveVoltage(12000);
+  if(LiftUpButton.isPressed() && abs(angler.getPosition())<600){
+      angler.moveVoltage(12000);
+			pros::delay(100);
+			lift.moveVoltage(12000);
 			//cout  << "button;"
+
+	}else if(LiftUpButton.isPressed()){
+		lift.moveVoltage(12000);
+
 	}else if(LiftDownButton.isPressed()){
-		lift.moveVoltage(-12000);
+    lift.moveVoltage(-12000);
+
 	}else{
 		lift.moveVoltage(-800);
 	}
 //------------------------------------------------------------------------------
  if(AnglerUpButton.isPressed())
 	 {
-	   sprintf(s,"%f",angler.getPosition());
-  	 masterController.setText(0, 0, s);
+	   //sprintf(s,"%f",angler.getPosition());
+  	 //masterController.setText(0, 0, s);
      //Display position of (MotorGroup) on controller
-		 if (abs(angler.getPosition())<=1000) {
+		 if (abs(angler.getPosition())<=1400) {
 			  angler.moveVoltage(12000);
 
-		 } else if (abs(angler.getPosition())>1000 && abs(angler.getPosition())<1400) {
+		 } else if (abs(angler.getPosition())>1400 && abs(angler.getPosition())<=1550) {
  		 	angler.moveVoltage(6000);
 
-		} else if(abs(angler.getPosition())>1400) {
+		} else if(abs(angler.getPosition())>1550) {
 			angler.moveVoltage(3000);
 		}
 
 	 } else if(AnglerDownButton.isPressed()){
 		  angler.moveVoltage(-12000);
 
-	 } else{
+	 } else if(LiftDownButton.isPressed()){
+		 pros::delay(375);
+		 angler.moveVoltage(-12000);
+
+	 }else{
 		 angler.moveVoltage(0);
 	 }
 //------------------------------------------------------------------------------
@@ -156,7 +215,6 @@ Broken Ports:
 TO DO LIST
 1. Tray control with angler movement
 2. IntakeOut Speed ajustments
-3. AnglerUp Speed ajustments
 
 cd C:\Users\bstar\git\2616J\2616J-TT1
 prosv5 make
