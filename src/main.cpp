@@ -1,6 +1,14 @@
 #include "main.h"
 #include "2616J.h"
 #include "string.h"
+#include "pros/apix.h"
+
+#include "display/lvgl.h"
+#include "display/lv_conf.h"
+
+
+
+//lv_img_dsc_t red_flower;
 
 
 /**
@@ -9,9 +17,55 @@
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
+ MotorGroup leftmg({ MOTOR_DRIVE_FRONT_LEFT,MOTOR_DRIVE_BACK_LEFT});
+ MotorGroup rightmg( {-MOTOR_DRIVE_FRONT_RIGHT,-MOTOR_DRIVE_BACK_RIGHT});
+
+ MotorGroup drive1 ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
+ MotorGroup turnLeft ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, MOTOR_DRIVE_FRONT_RIGHT, MOTOR_DRIVE_BACK_RIGHT});
+ MotorGroup turnRight({MOTOR_DRIVE_FRONT_LEFT, MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
+
+  Motor angler(-MOTOR_ANGLER);
+
+	MotorGroup intake({MOTOR_INTAKE_RIGHT,-MOTOR_INTAKE_LEFT});
+
+  MotorGroup lift({-MOTOR_LIFT});
+
+	auto drive = ChassisControllerFactory::create(
+	 leftmg, rightmg,
+		AbstractMotor::gearset::green,
+		{4_in, 9.0_in}
+	//distance between the center of the front drive wheels9
+	);
+int x;
+okapi::Controller masterController;
+ void my_task_fn(void* param) {
+	 char s[30];
+	 while(1==1){
+
+	 sprintf(s,"AE:%05.1f IE:%05.1f CE%d ",angler.getEfficiency(), intake.getEfficiency(),x++);
+	// masterController.setText(2,1, "               ");
+	 masterController.setText(2, 1, s);
+	 pros::lcd::set_text(6, s);
+	 pros::delay(100);
+ }
+	 //Display position of (MotorGroup) on controller
+ }
+
 void initialize() {
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
+  // lv_init();
+
+
+	/*************************
+	 * IMAGE FROM SOURCE CODE
+	 *************************/
+  LV_IMG_DECLARE(red_flower);
+	lv_obj_t * img_var = lv_img_create(lv_scr_act(), NULL); /*Crate an image object*/
+	lv_img_set_src(img_var, &red_flower);  /*Set the created file as image (a red flower)*/
+	lv_obj_set_pos(img_var, 0, 0); // actually 76 but w/e
+//	lv_obj_align(img_var, lv_scr_act(), LV_ALIGN_CENTER, ,0);
+
+	// pros::lcd::initialize();
+	// pros::lcd::set_text(3, "Yo");
 }
 
 /**
@@ -44,74 +98,67 @@ void competition_initialize() {}
  * from where it left off.
  */
 
- MotorGroup leftmg({ MOTOR_DRIVE_FRONT_LEFT,MOTOR_DRIVE_BACK_LEFT});
- MotorGroup rightmg( {-MOTOR_DRIVE_FRONT_RIGHT,-MOTOR_DRIVE_BACK_RIGHT});
-
- MotorGroup drive1 ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
- MotorGroup turnLeft ({-MOTOR_DRIVE_FRONT_LEFT, -MOTOR_DRIVE_BACK_LEFT, MOTOR_DRIVE_FRONT_RIGHT, MOTOR_DRIVE_BACK_RIGHT});
- MotorGroup turnRight({MOTOR_DRIVE_FRONT_LEFT, MOTOR_DRIVE_BACK_LEFT, -MOTOR_DRIVE_FRONT_RIGHT, -MOTOR_DRIVE_BACK_RIGHT});
-
- MotorGroup intake({MOTOR_INTAKE_RIGHT,-MOTOR_INTAKE_LEFT});
-
- MotorGroup lift({-MOTOR_LIFT});
-
- Motor angler(-MOTOR_ANGLER);
-
  //------------------------------------------------------------------------------
 
- auto drive = ChassisControllerFactory::create(
- 	leftmg, rightmg,
-   AbstractMotor::gearset::green,
-   {4_in, 9.0_in}
- //distance between the center of the front drive wheels
- );
+ // auto drive = ChassisControllerFactory::create(
+ // 	leftmg, rightmg,
+ //   AbstractMotor::gearset::green,
+ //   {4_in, 9.0_in}
+ // //distance between the center of the front drive wheels
+ // );
 
 void autonomous() {
 
 angler.moveVoltage(-1000);
-lift.moveVoltage(-1000);
+lift.moveVoltage(-1200);
 
 drive.setMaxVelocity(100);
-drive.moveDistance(100);
+drive.moveDistance(100); //forward
 
 pros::delay(100);
 
 drive.setMaxVelocity(100);
-drive.moveDistance(-100);
+drive.moveDistance(-100); //backward
 
-pros::delay(100);
+intake.moveVoltage(-12000); //outake
 
-intake.moveVoltage(12000);
+pros::delay(1000);
+
+intake.moveVoltage(12000); //intake
+pros::delay(150);
+
+drive.setMaxVelocity(100);
+drive.moveDistance(1450);//forward
+
 pros::delay(100);
 
 drive.setMaxVelocity(100);
-drive.moveDistance(1100);
+drive.moveDistance(-500);//backward
 
-pros::delay(100);
-
-drive.setMaxVelocity(100);
-drive.moveDistance(-375);
-
+intake.moveVoltage(0);//stop intake
 
 drive.setMaxVelocity(75);
-drive.turnAngle(-370);
+drive.turnAngle(-355);//turn left
 
 drive.setMaxVelocity(100);
-drive.moveDistance(750);
+drive.moveDistance(730);//forward
 
+intake.moveVoltage(-4000);
+pros::delay(480);
+intake.moveVoltage(0);
 
-if (abs(angler.getPosition())<=1300) {
+if (abs(angler.getPosition())<=1300) {//stack the cubes
 	 angler.moveVoltage(12000);
 
 } else if (abs(angler.getPosition())>1300 && abs(angler.getPosition())<=1500) {
- angler.moveVoltage(6000);
+ angler.moveVoltage(3000);
 
 } else if(abs(angler.getPosition())>1500) {
- angler.moveVoltage(3000);
+ angler.moveVoltage(1000);
 }
-pros::delay(200);
+pros::delay(2500);
 
-drive.moveDistance(-500);
+drive.moveDistance(-500);//move backward
 
 }
 
@@ -135,7 +182,9 @@ void opcontrol() {
 
 //------------------------------------------------------------------------------
 char s[30];
-	okapi::Controller masterController;
+
+ pros::Task my_cpp_task (my_task_fn, (void*)"PROS", "My Task");
+
 
  ControllerButton IntakeInButton(ControllerDigital::R1);
  ControllerButton IntakeOutButton(ControllerDigital::R2);
@@ -145,13 +194,14 @@ char s[30];
 
  ControllerButton LiftUpButton(ControllerDigital::L1);
  ControllerButton LiftDownButton(ControllerDigital::L2);
+
+  ControllerButton DoubleTower(ControllerDigital::A);
 //------------------------------------------------------------------------------
 intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 angler.setBrakeMode(AbstractMotor::brakeMode::brake);
 lift.setBrakeMode(AbstractMotor::brakeMode::brake);
 angler.tarePosition();
 int count =0;
-count++;
 //------------------------------------------------------------------------------
 	while (true) {
 		drive.tank(masterController.getAnalog(ControllerAnalog::leftY),
@@ -161,17 +211,24 @@ count++;
 	 {
 		 intake.moveVoltage(12000);
 		 lift.moveVoltage(-1000);
-
+     count =0;
 		 //resets counter to 0
-	 } else if(IntakeOutButton.isPressed() && count < 1){
-		  intake.moveVoltage(-6000);
-	 count =0;
-	 }else if(IntakeOutButton.isPressed() && count >= 1){
+
+	} else if(IntakeOutButton.isPressed()){
+			count++;
+
+	 if(count < 100){
+		 intake.moveVoltage(-6000);
+
+	 }else if(IntakeOutButton.isPressed()){
 		 intake.moveVoltage(-12000);
+
+	 }else if(IntakeInButton.isPressed()){
+		 count=0;
+	 }
 
 	 }else{
 		 intake.moveVoltage(0);
-
 	 }
 //------------------------------------------------------------------------------
   if(LiftUpButton.isPressed() && abs(angler.getPosition())<600){
@@ -187,7 +244,7 @@ count++;
     lift.moveVoltage(-12000);
 
 	}else{
-		lift.moveVoltage(-800);
+		lift.moveVoltage(-800);//runs down lift constantly
 	}
 //------------------------------------------------------------------------------
  if(AnglerUpButton.isPressed())
@@ -209,12 +266,19 @@ count++;
 		  angler.moveVoltage(-12000);
 
 	 } else if(LiftDownButton.isPressed()){
-		 pros::delay(375);
+		 pros::delay(300);
 		 angler.moveVoltage(-12000);
 
 	 }else{
 		 angler.moveVoltage(0);
 	 }
+//------------------------------------------------------------------------------
+if(DoubleTower.isPressed()){
+intake.tarePosition();
+intake.moveRelative(-750, 100);
+pros::delay(500);
+
+}
 //------------------------------------------------------------------------------
 	pros::delay(20);
  }
@@ -222,13 +286,12 @@ count++;
 
 /**
 
-Broken Ports:
-
+Broken Ports:13,14
 TO DO LIST
-1. Tray control with angler movement
+1. Auton Ajustments
 2. IntakeOut Speed ajustments
 
-cd C:\Users\bstar\git\2616J\2616J-TT1
+cd "C:\Users\bstar\git\2616J\2616J-TT1 - BLUE"
 prosv5 make
-prosv5 upload --slot 2 --name TTNew
+prosv5 upload --slot 3 --name TTBlueStack
 */
