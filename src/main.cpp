@@ -54,18 +54,20 @@ okapi::Controller masterController;
 void initialize() {
   // lv_init();
 
-
-	/*************************
-	 * IMAGE FROM SOURCE CODE
-	 *************************/
-  LV_IMG_DECLARE(red_flower);
-	lv_obj_t * img_var = lv_img_create(lv_scr_act(), NULL); /*Crate an image object*/
-	lv_img_set_src(img_var, &red_flower);  /*Set the created file as image (a red flower)*/
-	lv_obj_set_pos(img_var, 0, 0); // actually 76 but w/e
-//	lv_obj_align(img_var, lv_scr_act(), LV_ALIGN_CENTER, ,0);
-
-	// pros::lcd::initialize();
-	// pros::lcd::set_text(3, "Yo");
+  pros::delay(100);
+  	/*************************
+  	 * IMAGE FROM SOURCE CODE
+  	 *************************/
+    LV_IMG_DECLARE(red_flower);
+  	lv_obj_t * img_var = lv_img_create(lv_scr_act(), NULL); /*Crate an image object*/
+  	lv_img_set_src(img_var, &red_flower);  /*Set the created file as image (a red flower)*/
+  	lv_obj_set_pos(img_var, 0, 0); // actually 76 but w/e
+  	lv_obj_align(img_var, lv_scr_act(), LV_ALIGN_CENTER, 0,0);
+    lv_obj_t * progname = lv_label_create(lv_scr_act(), NULL);
+  	lv_label_set_align(progname, LV_LABEL_ALIGN_CENTER);
+  	lv_obj_set_width(progname, 150);
+  	lv_label_set_text(progname, "RedStack");
+  	lv_obj_set_pos(progname,95,50);
 }
 
 /**
@@ -138,7 +140,7 @@ drive.moveDistance(-500);//backward
 intake.moveVoltage(0);//stop intake
 
 drive.setMaxVelocity(75);
-drive.turnAngle(-355);//turn left
+drive.turnAngle(355);//turn left
 
 drive.setMaxVelocity(100);
 drive.moveDistance(730);//forward
@@ -200,7 +202,7 @@ char s[30];
 intake.setBrakeMode(AbstractMotor::brakeMode::brake);
 angler.setBrakeMode(AbstractMotor::brakeMode::brake);
 lift.setBrakeMode(AbstractMotor::brakeMode::brake);
-angler.tarePosition();
+//angler.tarePosition();
 int count =0;
 //------------------------------------------------------------------------------
 	while (true) {
@@ -258,7 +260,7 @@ int count =0;
 		 } else if (abs(angler.getPosition())>1400 && abs(angler.getPosition())<=1550) {
  		 	angler.moveVoltage(6000);
 
-		} else if(abs(angler.getPosition())>1550) {
+		} else if(abs(angler.getPosition())>1450) {
 			angler.moveVoltage(3000);
 		}
 
@@ -287,9 +289,6 @@ pros::delay(500);
 /**
 
 Broken Ports:13,14
-TO DO LIST
-1. Auton Ajustments
-2. IntakeOut Speed ajustments
 
 cd "C:\Users\bstar\git\2616J\2616J-TT1 - BLUE"
 prosv5 make
